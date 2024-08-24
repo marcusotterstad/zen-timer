@@ -3,6 +3,7 @@ package com.example.zen_timer;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -22,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private int rotationBufferIndex = 0;
     private CountDownTimer countDownTimer;
     private MediaPlayer mediaPlayer;
+    private boolean isRotating = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,33 +47,39 @@ public class MainActivity extends AppCompatActivity {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         lastTouchAngle = calculateAngle(x, y, centerX, centerY);
+                        isRotating = true;
                         break;
                     case MotionEvent.ACTION_MOVE:
-                        float currentAngle = calculateAngle(x, y, centerX, centerY);
-                        float angleDiff = currentAngle - lastTouchAngle;
+                        if (isRotating) {
+                            float currentAngle = calculateAngle(x, y, centerX, centerY);
+                            float angleDiff = currentAngle - lastTouchAngle;
 
-                        if (angleDiff > 180) angleDiff -= 360;
-                        if (angleDiff < -180) angleDiff += 360;
+                            if (angleDiff > 180) angleDiff -= 360;
+                            if (angleDiff < -180) angleDiff += 360;
 
-                        if (totalTimeMillis == 0 && angleDiff < 0) {
-                            break;
-                        }
+                            if (totalTimeMillis == 0 && angleDiff < 0) {
+                                break;
+                            }
 
-                        if (Math.abs(angleDiff) > 0.5) {
-                            cumulativeRotation += angleDiff;
-                            cumulativeRotation = Math.max(0, cumulativeRotation);
+                            if (Math.abs(angleDiff) > 0.5) {
+                                cumulativeRotation += angleDiff;
+                                cumulativeRotation = Math.max(0, cumulativeRotation);
 
-                            rotationBuffer[rotationBufferIndex] = cumulativeRotation;
-                            rotationBufferIndex = (rotationBufferIndex + 1) % rotationBuffer.length;
-                            float smoothRotation = calculateAverageRotation();
+                                rotationBuffer[rotationBufferIndex] = cumulativeRotation;
+                                rotationBufferIndex = (rotationBufferIndex + 1) % rotationBuffer.length;
+                                float smoothRotation = calculateAverageRotation();
 
-                            logoImageView.setRotation(smoothRotation);
-                            updateTimerFromRotation(smoothRotation);
-                            lastTouchAngle = currentAngle;
+                                logoImageView.setRotation(smoothRotation);
+                                updateTimerFromRotation(smoothRotation);
+                                lastTouchAngle = currentAngle;
+                            }
                         }
                         break;
                     case MotionEvent.ACTION_UP:
-                        startCountdownTimer();
+                        if (isRotating) {
+                            isRotating = false;
+                            startTimerSequence();
+                        }
                         break;
                 }
                 return true;
@@ -100,25 +108,36 @@ public class MainActivity extends AppCompatActivity {
         updateTimerText(totalTimeMillis);
     }
 
-    private void updateTimerText(long timeMillis) {
-        int hours = (int) (timeMillis / (3600 * 1000));
-        int minutes = (int) ((timeMillis % (3600 * 1000)) / 60000);
-        int seconds = (int) ((timeMillis % 60000) / 1000);
-
-        String timeFormatted;
-        if (hours > 0) {
-            timeFormatted = String.format("%d:%02d:%02d", hours, minutes, seconds);
-        } else {
-            timeFormatted = String.format("%02d:%02d", minutes, seconds);
-        }
-        timerText.setText(timeFormatted);
-    }
-
-    private void startCountdownTimer() {
+    private void startTimerSequence() {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
 
+        // 1-second pause
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                start5SecondCountdown();
+            }
+        }, 1000);
+    }
+
+    private void start5SecondCountdown() {
+        countDownTimer = new CountDownTimer(10000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                updateTimerText(millisUntilFinished);
+            }
+
+            @Override
+            public void onFinish() {
+                playSound();
+                startMainCountdownTimer();
+            }
+        }.start();
+    }
+
+    private void startMainCountdownTimer() {
         countDownTimer = new CountDownTimer(totalTimeMillis, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
@@ -135,8 +154,22 @@ public class MainActivity extends AppCompatActivity {
         }.start();
     }
 
+    private void updateTimerText(long timeMillis) {
+        int hours = (int) (timeMillis / (3600 * 1000));
+        int minutes = (int) ((timeMillis % (3600 * 1000)) / 60000);
+        int seconds = (int) ((timeMillis % 60000) / 1000);
+
+        String timeFormatted;
+        if (hours > 0) {
+            timeFormatted = String.format("%d:%02d:%02d", hours, minutes, seconds);
+        } else {
+            timeFormatted = String.format("%02d:%02d", minutes, seconds);
+        }
+        timerText.setText(timeFormatted);
+    }
+
     private void updateWheelRotation(long timeMillis) {
-        float progress = (float) timeMillis / (120 * 60 * 1000);
+        float progress = (float) timeMillis / totalTimeMillis;
         float rotation = progress * 1440; // 1440 degrees = 4 full rotations
         logoImageView.setRotation(rotation);
     }
