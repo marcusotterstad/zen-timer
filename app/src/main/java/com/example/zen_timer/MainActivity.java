@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView logoImageView;
     private float lastTouchAngle = 0f;
     private float cumulativeRotation = 0f;
-    private long remainingTimeMillis = 0;
+    private long totalTimeMillis = 0;
     private float[] rotationBuffer = new float[5];
     private int rotationBufferIndex = 0;
     private CountDownTimer countDownTimer;
@@ -53,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
                         if (angleDiff > 180) angleDiff -= 360;
                         if (angleDiff < -180) angleDiff += 360;
 
-                        if (remainingTimeMillis == 0 && angleDiff < 0) {
+                        if (totalTimeMillis == 0 && angleDiff < 0) {
                             break;
                         }
 
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                         break;
                     case MotionEvent.ACTION_UP:
-                        startCountdownFrom5Seconds();
+                        startCountdownTimer();
                         break;
                 }
                 return true;
@@ -96,8 +96,8 @@ public class MainActivity extends AppCompatActivity {
     private void updateTimerFromRotation(float rotation) {
         int totalMinutes = (int) (Math.abs(rotation) / 360 * 30);
         totalMinutes = Math.min(totalMinutes, 120);
-        remainingTimeMillis = totalMinutes * 60 * 1000L;
-        updateTimerText(remainingTimeMillis);
+        totalTimeMillis = totalMinutes * 60 * 1000L;
+        updateTimerText(totalTimeMillis);
     }
 
     private void updateTimerText(long timeMillis) {
@@ -114,39 +114,20 @@ public class MainActivity extends AppCompatActivity {
         timerText.setText(timeFormatted);
     }
 
-    private void startCountdownFrom5Seconds() {
+    private void startCountdownTimer() {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
 
-        playSound();
-
-        countDownTimer = new CountDownTimer(5000, 1000) {
+        countDownTimer = new CountDownTimer(totalTimeMillis, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                updateTimerText(millisUntilFinished);
-            }
-
-            @Override
-            public void onFinish() {
-                playSound();
-                startMainCountdown();
-            }
-        }.start();
-    }
-
-    private void startMainCountdown() {
-        countDownTimer = new CountDownTimer(remainingTimeMillis, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                remainingTimeMillis = millisUntilFinished;
                 updateTimerText(millisUntilFinished);
                 updateWheelRotation(millisUntilFinished);
             }
 
             @Override
             public void onFinish() {
-                remainingTimeMillis = 0;
                 updateTimerText(0);
                 updateWheelRotation(0);
                 playSound();
@@ -172,6 +153,9 @@ public class MainActivity extends AppCompatActivity {
         if (mediaPlayer != null) {
             mediaPlayer.release();
             mediaPlayer = null;
+        }
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
         }
     }
 }
