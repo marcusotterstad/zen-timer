@@ -1,6 +1,8 @@
 package com.example.zen_timer;
 
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -18,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
     private long remainingTimeMillis = 0;
     private float[] rotationBuffer = new float[5];
     private int rotationBufferIndex = 0;
+    private CountDownTimer countDownTimer;
+    private MediaPlayer mediaPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
 
         timerText = findViewById(R.id.timerText);
         logoImageView = findViewById(R.id.image_1);
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.singing_bowl);
 
         ConstraintLayout mainLayout = findViewById(R.id.main);
         mainLayout.setOnTouchListener(new View.OnTouchListener() {
@@ -47,14 +53,13 @@ public class MainActivity extends AppCompatActivity {
                         if (angleDiff > 180) angleDiff -= 360;
                         if (angleDiff < -180) angleDiff += 360;
 
-                        // Restrict backward rotation when timer is at 0
                         if (remainingTimeMillis == 0 && angleDiff < 0) {
                             break;
                         }
 
                         if (Math.abs(angleDiff) > 0.5) {
                             cumulativeRotation += angleDiff;
-                            cumulativeRotation = Math.max(0, cumulativeRotation); // Ensure it doesn't go below 0
+                            cumulativeRotation = Math.max(0, cumulativeRotation);
 
                             rotationBuffer[rotationBufferIndex] = cumulativeRotation;
                             rotationBufferIndex = (rotationBufferIndex + 1) % rotationBuffer.length;
@@ -64,6 +69,9 @@ public class MainActivity extends AppCompatActivity {
                             updateTimerFromRotation(smoothRotation);
                             lastTouchAngle = currentAngle;
                         }
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        startCountdownFrom5Seconds();
                         break;
                 }
                 return true;
@@ -104,5 +112,66 @@ public class MainActivity extends AppCompatActivity {
             timeFormatted = String.format("%02d:%02d", minutes, seconds);
         }
         timerText.setText(timeFormatted);
+    }
+
+    private void startCountdownFrom5Seconds() {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
+
+        playSound();
+
+        countDownTimer = new CountDownTimer(5000, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                updateTimerText(millisUntilFinished);
+            }
+
+            @Override
+            public void onFinish() {
+                playSound();
+                startMainCountdown();
+            }
+        }.start();
+    }
+
+    private void startMainCountdown() {
+        countDownTimer = new CountDownTimer(remainingTimeMillis, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                remainingTimeMillis = millisUntilFinished;
+                updateTimerText(millisUntilFinished);
+                updateWheelRotation(millisUntilFinished);
+            }
+
+            @Override
+            public void onFinish() {
+                remainingTimeMillis = 0;
+                updateTimerText(0);
+                updateWheelRotation(0);
+                playSound();
+            }
+        }.start();
+    }
+
+    private void updateWheelRotation(long timeMillis) {
+        float progress = (float) timeMillis / (120 * 60 * 1000);
+        float rotation = progress * 1440; // 1440 degrees = 4 full rotations
+        logoImageView.setRotation(rotation);
+    }
+
+    private void playSound() {
+        if (mediaPlayer != null) {
+            mediaPlayer.start();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
     }
 }
