@@ -117,32 +117,44 @@ public class MainActivity extends AppCompatActivity {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                start5SecondCountdown();
+                start10SecondCountdown();
             }
         }, 1000);
     }
 
-    private void start5SecondCountdown() {
+    private void start10SecondCountdown() {
         countDownTimer = new CountDownTimer(10000, 1000) {
+            int secondsRemaining = 10;
+
             @Override
             public void onTick(long millisUntilFinished) {
-                updateTimerText(millisUntilFinished);
+                updateTimerText(secondsRemaining * 1000L);
+                secondsRemaining--;
             }
 
             @Override
             public void onFinish() {
                 playSound();
-                startMainCountdownTimer();
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        startMainCountdownTimer();
+                    }
+                }, 1000);
             }
         }.start();
     }
 
     private void startMainCountdownTimer() {
+        final long totalSeconds = totalTimeMillis / 1000;
         countDownTimer = new CountDownTimer(totalTimeMillis, 1000) {
+            long secondsRemaining = totalSeconds;
+
             @Override
             public void onTick(long millisUntilFinished) {
-                updateTimerText(millisUntilFinished);
-                updateWheelRotation(millisUntilFinished);
+                updateTimerText(secondsRemaining * 1000);
+                updateWheelRotation(secondsRemaining * 1000);
+                secondsRemaining--;
             }
 
             @Override
@@ -153,6 +165,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }.start();
     }
+
 
     private void updateTimerText(long timeMillis) {
         int hours = (int) (timeMillis / (3600 * 1000));
