@@ -3,6 +3,15 @@ package com.example.zen_timer;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+/**
+ * TimerView manages the visual representation of the Zen Timer.
+ * It handles updating the timer text display and the rotation of the logo image.
+ *
+ * This class is responsible for:
+ * 1. Updating the timer text display with the current time.
+ * 2. Rotating the logo image based on the timer progress.
+ * 3. Providing information about the logo's position for gesture calculations.
+ */
 public class TimerView {
     private TextView timerText;
     private ImageView logoImageView;

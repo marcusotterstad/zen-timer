@@ -5,6 +5,16 @@ import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.os.Handler;
 
+/**
+ * TimerController manages the core logic of the Zen Timer.
+ * It handles timer calculations, countdown sequences, and sound playback.
+ * This class is responsible for:
+ * 1. Calculating timer duration based on user input (rotation).
+ * 2. Managing the countdown sequence, including the initial 10-second countdown.
+ * 3. Updating the TimerView with current timer values.
+ * 4. Playing sounds at appropriate times during the timer sequence.
+ * 5. Releasing resources when no longer needed.
+ */
 public class TimerController {
     private Context context;
     private TimerView timerView;

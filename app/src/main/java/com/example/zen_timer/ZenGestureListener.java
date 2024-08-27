@@ -3,6 +3,9 @@ package com.example.zen_timer;
 import android.view.MotionEvent;
 import android.view.View;
 
+/**
+ * ZenGestureListener handles user interactions with the Zen Timer logo.
+ */
 public class ZenGestureListener {
     private TimerController timerController;
     private TimerView timerView;
