@@ -4,8 +4,15 @@ import android.view.MotionEvent;
 import android.view.View;
 
 /**
- * ZenGestureListener handles user interactions with the Zen Timer logo.
+ * ZenGestureListener handles touch events for the Zen Timer app.
+ * It calculates rotations based on user touch input and updates the timer accordingly.
+ * This class is responsible for:
+ * 1. Detecting and interpreting touch events on the main layout.
+ * 2. Calculating the rotation angle based on touch positions.
+ * 3. Smoothing the rotation using a buffer for a more fluid user experience.
+ * 4. Updating the TimerView and TimerController based on user interactions.
  */
+
 public class ZenGestureListener {
     private TimerController timerController;
     private TimerView timerView;
@@ -34,7 +41,7 @@ public class ZenGestureListener {
             case MotionEvent.ACTION_MOVE:
                 if (isRotating) {
                     float currentAngle = calculateAngle(x, y, centerX, centerY);
-                    float angleDiff = currentAngle - lastTouchAngle;
+                    float angleDiff = lastTouchAngle - currentAngle; // Changed this line
 
                     if (angleDiff > 180) angleDiff -= 360;
                     if (angleDiff < -180) angleDiff += 360;
@@ -47,7 +54,7 @@ public class ZenGestureListener {
                         rotationBufferIndex = (rotationBufferIndex + 1) % rotationBuffer.length;
                         float smoothRotation = calculateAverageRotation();
 
-                        timerView.setLogoRotation(smoothRotation);
+                        timerView.setLogoRotation(-smoothRotation); // Added negative sign
                         timerController.updateTimerFromRotation(smoothRotation);
                         lastTouchAngle = currentAngle;
                     }

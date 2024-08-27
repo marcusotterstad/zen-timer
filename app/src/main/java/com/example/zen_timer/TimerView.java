@@ -36,7 +36,7 @@ public class TimerView {
     }
 
     public void updateWheelRotation(long timeMillis, long totalTimeMillis) {
-        float progress = (float) timeMillis / totalTimeMillis;
+        float progress = 1 - ((float) timeMillis / totalTimeMillis); // Changed this line
         float rotation = progress * 1440; // 1440 degrees = 4 full rotations
         logoImageView.setRotation(rotation);
     }
