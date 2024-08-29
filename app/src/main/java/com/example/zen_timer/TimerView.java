@@ -1,5 +1,7 @@
 package com.example.zen_timer;
 
+import android.animation.ValueAnimator;
+import android.view.animation.LinearInterpolator;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -15,6 +17,7 @@ import android.widget.TextView;
 public class TimerView {
     private TextView timerText;
     private ImageView logoImageView;
+    private ValueAnimator rotationAnimator;
 
     public TimerView(MainActivity activity) {
         timerText = activity.findViewById(R.id.timerText);
@@ -22,23 +25,44 @@ public class TimerView {
     }
 
     public void updateTimerText(long timeMillis) {
-        int hours = (int) (timeMillis / (3600 * 1000));
-        int minutes = (int) ((timeMillis % (3600 * 1000)) / 60000);
+        int minutes = (int) (timeMillis / 60000);
         int seconds = (int) ((timeMillis % 60000) / 1000);
-
-        String timeFormatted;
-        if (hours > 0) {
-            timeFormatted = String.format("%d:%02d:%02d", hours, minutes, seconds);
-        } else {
-            timeFormatted = String.format("%02d:%02d", minutes, seconds);
-        }
+        String timeFormatted = String.format("%02d:%02d", minutes, seconds);
         timerText.setText(timeFormatted);
     }
 
-    public void updateWheelRotation(long timeMillis, long totalTimeMillis) {
-        float progress = 1 - ((float) timeMillis / totalTimeMillis); // Changed this line
-        float rotation = progress * 1440; // 1440 degrees = 4 full rotations
-        logoImageView.setRotation(rotation);
+    public void startSmoothRotation() {
+        if (rotationAnimator != null) {
+            rotationAnimator.cancel();
+        }
+
+        rotationAnimator = ValueAnimator.ofFloat(0f, 360f); // 1 full rotation
+        rotationAnimator.setDuration(80000);
+        rotationAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        rotationAnimator.setInterpolator(new LinearInterpolator());
+        rotationAnimator.addUpdateListener(animation -> {
+            float rotation = (float) animation.getAnimatedValue();
+            logoImageView.setRotation(rotation);
+        });
+        rotationAnimator.start();
+    }
+
+    public void pauseRotation() {
+        if (rotationAnimator != null) {
+            rotationAnimator.pause();
+        }
+    }
+
+    public void resumeRotation() {
+        if (rotationAnimator != null) {
+            rotationAnimator.resume();
+        }
+    }
+
+    public void stopRotation() {
+        if (rotationAnimator != null) {
+            rotationAnimator.cancel();
+        }
     }
 
     public void setLogoRotation(float rotation) {

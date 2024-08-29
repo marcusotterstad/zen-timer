@@ -39,9 +39,8 @@ public class TimerController {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
-
-        // 1-second pause
-        new Handler().postDelayed(this::start10SecondCountdown, 1000);
+        // Start the 10-second prep countdown
+        start10SecondCountdown();
     }
 
     private void start10SecondCountdown() {
@@ -63,21 +62,18 @@ public class TimerController {
     }
 
     private void startMainCountdownTimer() {
-        final long totalSeconds = totalTimeMillis / 1000;
-        countDownTimer = new CountDownTimer(totalTimeMillis, 1000) {
-            long secondsRemaining = totalSeconds;
+        timerView.startSmoothRotation(); // Start constant rotation
 
+        countDownTimer = new CountDownTimer(totalTimeMillis, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                timerView.updateTimerText(secondsRemaining * 1000);
-                timerView.updateWheelRotation(secondsRemaining * 1000, totalTimeMillis);
-                secondsRemaining--;
+                timerView.updateTimerText(millisUntilFinished);
             }
 
             @Override
             public void onFinish() {
                 timerView.updateTimerText(0);
-                timerView.updateWheelRotation(0, totalTimeMillis);
+                timerView.stopRotation();
                 playSound();
             }
         }.start();
@@ -91,6 +87,7 @@ public class TimerController {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
+        timerView.stopRotation();
     }
 
     private void playSound() {
