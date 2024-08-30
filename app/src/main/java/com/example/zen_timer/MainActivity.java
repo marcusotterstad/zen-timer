@@ -2,29 +2,31 @@ package com.example.zen_timer;
 
 import android.os.Bundle;
 import android.view.MotionEvent;
+import android.view.View;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 
-/**
- * MainActivity is the entry point of the Zen Timer application.
- * It sets up the user interface and initializes the core components of the app.
- * This class is responsible for:
- * 1. Creating and managing instances of TimerView, TimerController, and ZenGestureListener.
- * 2. Setting up the touch listener for the main layout to handle user interactions.
- * 3. Managing the lifecycle of the app, including proper resource cleanup on destroy.
- */
 public class MainActivity extends AppCompatActivity {
     private TimerView timerView;
     private TimerController timerController;
     private ZenGestureListener gestureListener;
+    private ImageButton resetButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        timerView = new TimerView(this);
-        timerController = new TimerController(this, timerView);
+        TextView timerText = findViewById(R.id.timerText);
+        ImageView logoImageView = findViewById(R.id.image_1);
+        resetButton = findViewById(R.id.resetButton);
+        resetButton.setVisibility(View.INVISIBLE); // Initially hide the reset button
+
+        timerView = new TimerView(timerText, logoImageView);
+        timerController = new TimerController(this, timerView, resetButton);
         gestureListener = new ZenGestureListener(timerController, timerView);
 
         ConstraintLayout mainLayout = findViewById(R.id.main);
@@ -32,6 +34,15 @@ public class MainActivity extends AppCompatActivity {
             gestureListener.onTouch(v, event);
             return true;
         });
+
+        resetButton.setOnClickListener(v -> resetTimer());
+    }
+
+    private void resetTimer() {
+        timerController.resetTimer();
+        timerView.resetView();
+        gestureListener.resetGesture();
+        resetButton.setVisibility(View.INVISIBLE); // Hide the button after reset
     }
 
     @Override

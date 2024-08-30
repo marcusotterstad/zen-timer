@@ -4,27 +4,21 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.view.View;
+import android.widget.ImageButton;
 
-/**
- * TimerController manages the core logic of the Zen Timer.
- * It handles timer calculations, countdown sequences, and sound playback.
- * This class is responsible for:
- * 1. Calculating timer duration based on user input (rotation).
- * 2. Managing the countdown sequence, including the initial 10-second countdown.
- * 3. Updating the TimerView with current timer values.
- * 4. Playing sounds at appropriate times during the timer sequence.
- * 5. Releasing resources when no longer needed.
- */
 public class TimerController {
     private Context context;
     private TimerView timerView;
     private CountDownTimer countDownTimer;
     private MediaPlayer mediaPlayer;
     private long totalTimeMillis = 0;
+    private ImageButton resetButton;
 
-    public TimerController(Context context, TimerView timerView) {
+    public TimerController(Context context, TimerView timerView, ImageButton resetButton) {
         this.context = context;
         this.timerView = timerView;
+        this.resetButton = resetButton;
         mediaPlayer = MediaPlayer.create(context, R.raw.singing_bowl);
     }
 
@@ -33,18 +27,20 @@ public class TimerController {
         totalMinutes = Math.min(totalMinutes, 120);
         totalTimeMillis = totalMinutes * 60 * 1000L;
         timerView.updateTimerText(totalTimeMillis);
+
+        // Show the reset button when timer is set
+        if (totalTimeMillis > 0) {
+            resetButton.setVisibility(View.VISIBLE);
+        }
     }
 
     public void startTimerSequence() {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
-        // Check if the timer is set to 0
         if (totalTimeMillis == 0) {
-            // If the timer is 0, don't start the sequence
             return;
         }
-        // Start the 10-second prep countdown
         start10SecondCountdown();
     }
 
@@ -67,7 +63,7 @@ public class TimerController {
     }
 
     private void startMainCountdownTimer() {
-        timerView.startSmoothRotation(); // Start constant rotation
+        timerView.startSmoothRotation();
 
         countDownTimer = new CountDownTimer(totalTimeMillis, 1000) {
             @Override
@@ -80,8 +76,18 @@ public class TimerController {
                 timerView.updateTimerText(0);
                 timerView.stopRotation();
                 playSound();
+                resetButton.setVisibility(View.INVISIBLE);
             }
         }.start();
+    }
+
+    public void resetTimer() {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
+        totalTimeMillis = 0;
+        timerView.updateTimerText(totalTimeMillis);
+        resetButton.setVisibility(View.INVISIBLE);
     }
 
     public void release() {
