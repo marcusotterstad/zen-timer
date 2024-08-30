@@ -39,6 +39,11 @@ public class TimerController {
         if (countDownTimer != null) {
             countDownTimer.cancel();
         }
+        // Check if the timer is set to 0
+        if (totalTimeMillis == 0) {
+            // If the timer is 0, don't start the sequence
+            return;
+        }
         // Start the 10-second prep countdown
         start10SecondCountdown();
     }
