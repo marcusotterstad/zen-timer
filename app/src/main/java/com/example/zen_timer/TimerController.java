@@ -14,6 +14,7 @@ public class TimerController {
     private MediaPlayer mediaPlayer;
     private long totalTimeMillis = 0;
     private ImageButton resetButton;
+    private boolean isTimerRunning = false;
 
     public TimerController(Context context, TimerView timerView, ImageButton resetButton) {
         this.context = context;
@@ -23,11 +24,12 @@ public class TimerController {
     }
 
     public void updateTimerFromRotation(float rotation) {
-        int totalMinutes = (int) (Math.abs(rotation) / 360 * 30);
-        totalMinutes = Math.min(totalMinutes, 120);
-        totalTimeMillis = totalMinutes * 60 * 1000L;
-        timerView.updateTimerText(totalTimeMillis);
-
+        if (!isTimerRunning) {
+            int totalMinutes = (int) (Math.abs(rotation) / 360 * 30);
+            totalMinutes = Math.min(totalMinutes, 120);
+            totalTimeMillis = totalMinutes * 60 * 1000L;
+            timerView.updateTimerText(totalTimeMillis);
+        }
     }
 
     public void startTimerSequence() {
@@ -37,6 +39,7 @@ public class TimerController {
         if (totalTimeMillis == 0) {
             return;
         }
+        isTimerRunning = true;
         start10SecondCountdown();
     }
 
@@ -53,8 +56,8 @@ public class TimerController {
             @Override
             public void onFinish() {
                 playSound();
-                new Handler().postDelayed(() -> startMainCountdownTimer(), 1000);
                 resetButton.setVisibility(View.VISIBLE);
+                new Handler().postDelayed(() -> startMainCountdownTimer(), 1000);
             }
         }.start();
     }
@@ -74,6 +77,7 @@ public class TimerController {
                 timerView.stopRotation();
                 playSound();
                 resetButton.setVisibility(View.INVISIBLE);
+                isTimerRunning = false;
             }
         }.start();
     }
@@ -85,6 +89,8 @@ public class TimerController {
         totalTimeMillis = 0;
         timerView.updateTimerText(totalTimeMillis);
         resetButton.setVisibility(View.INVISIBLE);
+        isTimerRunning = false;
+        timerView.resetView();
     }
 
     public void release() {
@@ -102,5 +108,9 @@ public class TimerController {
         if (mediaPlayer != null) {
             mediaPlayer.start();
         }
+    }
+
+    public boolean isTimerRunning() {
+        return isTimerRunning;
     }
 }

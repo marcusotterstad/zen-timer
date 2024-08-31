@@ -18,6 +18,10 @@ public class ZenGestureListener {
     }
 
     public boolean onTouch(View v, MotionEvent event) {
+        if (timerController.isTimerRunning()) {
+            return true; // Ignore touch events if the timer is running
+        }
+
         float x = event.getX();
         float y = event.getY();
         float centerX = timerView.getLogoCenterX();
