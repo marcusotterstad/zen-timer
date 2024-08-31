@@ -4,6 +4,7 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.widget.ImageButton;
 
@@ -15,11 +16,13 @@ public class TimerController {
     private long totalTimeMillis = 0;
     private ImageButton resetButton;
     private boolean isTimerRunning = false;
+    private View hapticView;
 
-    public TimerController(Context context, TimerView timerView, ImageButton resetButton) {
+    public TimerController(Context context, TimerView timerView, ImageButton resetButton, View hapticView) {
         this.context = context;
         this.timerView = timerView;
         this.resetButton = resetButton;
+        this.hapticView = hapticView;
         mediaPlayer = MediaPlayer.create(context, R.raw.singing_bowl);
     }
 
@@ -51,11 +54,13 @@ public class TimerController {
             public void onTick(long millisUntilFinished) {
                 timerView.updateTimerText(secondsRemaining * 1000L);
                 secondsRemaining--;
+                hapticView.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
             }
 
             @Override
             public void onFinish() {
                 playSound();
+                hapticView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                 resetButton.setVisibility(View.VISIBLE);
                 new Handler().postDelayed(() -> startMainCountdownTimer(), 1000);
             }
@@ -76,6 +81,7 @@ public class TimerController {
                 timerView.updateTimerText(0);
                 timerView.stopRotation();
                 playSound();
+                hapticView.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
                 resetButton.setVisibility(View.INVISIBLE);
                 isTimerRunning = false;
             }

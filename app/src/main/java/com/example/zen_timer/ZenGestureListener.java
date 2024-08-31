@@ -1,5 +1,6 @@
 package com.example.zen_timer;
 
+import android.view.HapticFeedbackConstants;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -11,6 +12,8 @@ public class ZenGestureListener {
     private float[] rotationBuffer = new float[5];
     private int rotationBufferIndex = 0;
     private boolean isRotating = false;
+    private float lastHapticRotation = 0f;
+    private static final float HAPTIC_ROTATION_THRESHOLD = 30f;
 
     public ZenGestureListener(TimerController timerController, TimerView timerView) {
         this.timerController = timerController;
@@ -31,6 +34,7 @@ public class ZenGestureListener {
             case MotionEvent.ACTION_DOWN:
                 lastTouchAngle = calculateAngle(x, y, centerX, centerY);
                 isRotating = true;
+                lastHapticRotation = 0f;
                 break;
             case MotionEvent.ACTION_MOVE:
                 if (isRotating) {
@@ -51,6 +55,12 @@ public class ZenGestureListener {
                         timerView.setLogoRotation(-smoothRotation);
                         timerController.updateTimerFromRotation(smoothRotation);
                         lastTouchAngle = currentAngle;
+
+                        // Perform haptic feedback when rotation threshold is reached
+                        if (Math.abs(smoothRotation - lastHapticRotation) >= HAPTIC_ROTATION_THRESHOLD) {
+                            v.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
+                            lastHapticRotation = smoothRotation;
+                        }
                     }
                 }
                 break;
@@ -84,5 +94,6 @@ public class ZenGestureListener {
         rotationBuffer = new float[5];
         rotationBufferIndex = 0;
         isRotating = false;
+        lastHapticRotation = 0f;
     }
 }

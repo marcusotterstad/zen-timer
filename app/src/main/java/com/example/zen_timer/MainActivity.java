@@ -1,7 +1,6 @@
 package com.example.zen_timer;
 
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -23,13 +22,14 @@ public class MainActivity extends AppCompatActivity {
         TextView timerText = findViewById(R.id.timerText);
         ImageView logoImageView = findViewById(R.id.image_1);
         resetButton = findViewById(R.id.resetButton);
-        resetButton.setVisibility(View.INVISIBLE); // Initially hide the reset button
-
-        timerView = new TimerView(timerText, logoImageView);
-        timerController = new TimerController(this, timerView, resetButton);
-        gestureListener = new ZenGestureListener(timerController, timerView);
+        resetButton.setVisibility(View.INVISIBLE);
 
         ConstraintLayout mainLayout = findViewById(R.id.main);
+
+        timerView = new TimerView(timerText, logoImageView);
+        timerController = new TimerController(this, timerView, resetButton, mainLayout);
+        gestureListener = new ZenGestureListener(timerController, timerView);
+
         mainLayout.setOnTouchListener((v, event) -> {
             gestureListener.onTouch(v, event);
             return true;
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         timerController.resetTimer();
         timerView.resetView();
         gestureListener.resetGesture();
-        resetButton.setVisibility(View.INVISIBLE); // Hide the button after reset
+        resetButton.setVisibility(View.INVISIBLE);
     }
 
     @Override
