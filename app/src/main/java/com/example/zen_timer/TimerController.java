@@ -28,10 +28,6 @@ public class TimerController {
         totalTimeMillis = totalMinutes * 60 * 1000L;
         timerView.updateTimerText(totalTimeMillis);
 
-        // Show the reset button when timer is set
-        if (totalTimeMillis > 0) {
-            resetButton.setVisibility(View.VISIBLE);
-        }
     }
 
     public void startTimerSequence() {
@@ -58,6 +54,7 @@ public class TimerController {
             public void onFinish() {
                 playSound();
                 new Handler().postDelayed(() -> startMainCountdownTimer(), 1000);
+                resetButton.setVisibility(View.VISIBLE);
             }
         }.start();
     }
